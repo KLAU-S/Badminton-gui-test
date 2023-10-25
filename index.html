@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Court</title>
+  <style>
+    html, body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            position: relative;
+            background: grey;
+            }
+
+            .court {
+            display: grid;
+            grid-template-rows: 40px 120px 120px 40px;
+            grid-template-columns: 50px 200px 80px 80px 200px 50px;
+            justify-content: center;
+            align-content: center;
+            }
+            .court > div {
+            border: solid #fff;
+            border-width: 2px 0 0 2px;
+            transition: all 0.5s;
+            cursor: pointer;
+            }
+
+            .court > div:nth-child(6),
+            .court > div:nth-child(12),
+            .court > div:nth-child(16),
+            .court > div:nth-child(22) {
+            border-right-width: 2px;
+            }
+            .court > div:nth-last-child(-n + 6) {
+            border-bottom-width: 2px;
+            }
+            .court > div:nth-child(9),
+            .court > div:nth-child(10) {
+            grid-row: 2/4;
+            }
+            .court > div:nth-child(9) {
+            grid-column: 3;
+            }
+            .court > div:nth-child(10) {
+            grid-column: 4;
+            }
+
+            .scoreboard {
+                /*align the table in horizontal centre of the page*/
+                text-align: center;
+                margin-bottom: 20px;
+                border-collapse: collapse;
+                color:#000000;
+            }
+
+            .scoreboard td {
+                border: 2px solid rgb(0, 0, 0);
+                padding: 10px;
+            }
+
+            .status {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                font-size: 24px;
+                color: black;
+                pointer-events: none;  /* Makes the div non-clickable so court clicks can pass through */
+                z-index: 10;
+            }   
+            .card{
+                position: absolute;
+                margin-top: 47.5vh;
+                z-index: 10;
+                background-color: rgba(255, 255, 255, 0.8);
+                /* border-radius: 20px; */
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+                width: 81%;
+                height: 5%;
+            }
+
+            .win {
+                background-color: green;
+                color: white;
+            }
+
+            .lose {
+                background-color: red;
+                color: white;
+            }
+
+        </style>
+    </head>
+    <body>
+
+    <table class="scoreboard">
+        <tr style="background-color: white;">
+            <td id="leftTeamName">Top Team</td>
+            <td id="rightTeamName">Bottom Team</td>
+        </tr>
+        <tr style="background-color: white;">
+            <td id="leftScore">0</td>
+            <td id="rightScore">0</td>
+        </tr>
+
+    </table>
+    <div class="card"></div>
+    <div id="courtStatus" class="status"></div>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg);" class="court">
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+        <div style="background-color:green;"></div>
+    </div>
+
+    <script>
+    const leftScoreEl = document.getElementById("leftScore");
+    const rightScoreEl = document.getElementById("rightScore");
+    const courtStatusEl = document.getElementById("courtStatus");
+    const courtStatusCard = document.querySelector(".card");
+    courtStatusCard.style.display = "none"; // Hide the card by default
+
+
+    let leftScore = 0;
+    let rightScore = 0;
+    let advantage = null; // Can be 'left', 'right', or null
+    let gameEnded = false;
+
+    function updateScore() {
+        // If gameEnded, don't update scores
+        if (gameEnded) {
+            alert("Game has ended. Click OK to reset the scoreboard.");
+            courtStatusCard.style.display = "none"; // Hide the card by default
+            resetGame();
+            return;
+        }
+
+        leftScoreEl.textContent = leftScore;
+        rightScoreEl.textContent = rightScore;
+
+        document.getElementById("leftTeamName").className = "";
+        document.getElementById("rightTeamName").className = "";
+
+        courtStatusEl.textContent = ""; // Clear any previous status
+
+        // Check for game end first
+        if ((leftScore >= 21 && (leftScore - rightScore >= 2)) || leftScore === 30) {
+            endGame('left');
+            return;
+        } else if ((rightScore >= 21 && (rightScore - leftScore >= 2)) || rightScore === 30) {
+            endGame('right');
+            return;
+        }
+
+        // Check for deuce or advantage
+        if (leftScore >= 20 && rightScore >= 20) {
+            if (leftScore === rightScore) {
+                // If the score is deuce
+                courtStatusCard.style.display = "block"; // Show the card
+                courtStatusEl.textContent = "Deuce";
+                advantage = null;
+            } else if (leftScore - rightScore === 1) {
+                courtStatusCard.style.display = "block"; // Show the card
+                courtStatusEl.textContent = "Advantage Top Team";
+                advantage = 'left';
+            } else if (rightScore - leftScore === 1) {
+                courtStatusCard.style.display = "block"; // Show the card
+                courtStatusEl.textContent = "Advantage Bottom Team";
+                advantage = 'right';
+            }
+        }
+    }
+
+
+    function endGame(winner) {
+        gameEnded = true;
+        if (winner === 'left') {
+            document.getElementById("leftTeamName").className = "win";
+            document.getElementById("rightTeamName").className = "lose";
+            courtStatusEl.textContent = "Team on the Top won !";
+        } 
+        else {
+            document.getElementById("leftTeamName").className = "lose";
+            document.getElementById("rightTeamName").className = "win";
+            courtStatusEl.textContent = "Team on the bottom won !";
+
+        }
+    }
+
+    function resetGame() {
+        leftScore = 0;
+        rightScore = 0;
+        advantage = null;
+        gameEnded = false;
+        updateScore();
+    }
+
+    let parentElement = document.querySelector(".court").parentElement;
+    let parentHeight = parentElement.getBoundingClientRect().height;
+
+
+    document.querySelector(".court").addEventListener("click", (e) => {
+        // Calculate the click distance from the net
+        var distanceFromNet = Math.abs(e.clientY - parentHeight / 2);
+        console.log("Distance from net: " + distanceFromNet + " pixels");
+
+        // Check if the click was on the top or bottom half of the court
+        if (e.clientY < parentHeight / 2) {
+            leftScore++;
+            if (advantage === 'right') advantage = null;
+        } else {
+            rightScore++;
+            if (advantage === 'left') advantage = null;
+        }
+        updateScore();
+    });
+
+
+
+
+    </script>
+
+  </body>
+</html>
